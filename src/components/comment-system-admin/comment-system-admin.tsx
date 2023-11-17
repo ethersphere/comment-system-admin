@@ -13,7 +13,7 @@ export interface SwarmCommentModerationProps {
   beeDebugApiUrl?: string;
 }
 
-export default function SwarmCommentModeration(
+export default function SwarmCommentAdmin(
   props: SwarmCommentModerationProps
 ) {
   const { feeds, addFeed, removeFeed, updateFeed } = useFeeds();
