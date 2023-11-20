@@ -7,6 +7,7 @@ import {
 import { Feed } from "../../../model/feed.model";
 import { Button, ListGroup, Spinner } from "react-bootstrap";
 import styles from "./feed-comments.module.scss";
+import { Wallet } from "ethers";
 
 export interface FeedCommentsProps {
   feed: Feed;
@@ -20,6 +21,11 @@ export default function FeedComments(props: FeedCommentsProps) {
   const [loading, setLoading] = useState(true);
   const [allComments, setAllComments] = useState<Comment[] | null>(null);
   const [approvedComments, setApprovedComments] = useState<Comment[]>([]);
+
+  const feedAddress = useMemo(
+    () => new Wallet(feed.privateKey as string).address,
+    [feed]
+  );
 
   const approvedIndices = useMemo(() => {
     if (!allComments || !approvedComments) {
@@ -52,7 +58,8 @@ export default function FeedComments(props: FeedCommentsProps) {
         }),
         readComments({
           ...props,
-          identifier: feed.moderationIdentifier,
+          identifier: feed.id,
+          approvedFeedAddress: feedAddress,
         }),
       ]);
 
@@ -68,9 +75,11 @@ export default function FeedComments(props: FeedCommentsProps) {
   const approveComment = async (comment: Comment) => {
     try {
       setLoading(true);
+
       await writeComment(comment, {
         ...props,
-        identifier: feed.moderationIdentifier,
+        identifier: feed.id,
+        privateKey: feed.privateKey,
       });
       setApprovedComments([...approvedComments, comment]);
     } catch (error) {
@@ -95,9 +104,8 @@ export default function FeedComments(props: FeedCommentsProps) {
   return (
     <div className={styles["swarm-comment-system-comments"]}>
       <div className={styles["identifier"]}>Identifier: {feed.identifier}</div>
-      <div className={styles["identifier"]}>
-        Moderation Identifier: {feed.moderationIdentifier}
-      </div>
+      <div className={styles["identifier"]}>Feed ID: {feed.id}</div>
+      <div className={styles["identifier"]}>Feed Address: {feedAddress}</div>
       {allComments ? (
         allComments.length === 0 ? (
           <div>There are no comments!</div>

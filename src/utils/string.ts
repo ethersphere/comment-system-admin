@@ -1,4 +1,6 @@
-export default function shortenString(
+import { Wallet } from "ethers";
+
+export function shortenString(
   input: string,
   maxLength: number,
   cutX = 10
@@ -8,4 +10,13 @@ export default function shortenString(
   } else {
     return input;
   }
+}
+
+export function isPrivateKey(input: string): boolean {
+  try {
+    new Wallet(input);
+  } catch (e) {
+    return false;
+  }
+  return true;
 }

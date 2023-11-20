@@ -1,7 +1,7 @@
 import Table from "react-bootstrap/Table";
 import { Feed } from "../../../model/feed.model";
 import { Button } from "react-bootstrap";
-import shortenString from "../../../utils/string";
+import { shortenString } from "../../../utils/string";
 
 export interface FeedListProps {
   feeds: Feed[];

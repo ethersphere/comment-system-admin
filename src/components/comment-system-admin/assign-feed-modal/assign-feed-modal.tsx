@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Form } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
+import { isPrivateKey } from "../../../utils/string";
+import { Wallet } from "ethers";
 
 interface AssignFeedModalProps {
   show: boolean;
-  onSubmit: (identifier: string, moderationIdentifier: string) => void;
+  onSubmit: (identifier: string, privateKey: string) => void;
   onClose: () => void;
 }
 
@@ -15,14 +17,16 @@ export default function AssignFeedModal({
   onClose,
 }: AssignFeedModalProps) {
   const [identifier, setIdentifier] = useState("");
-  const [moderationIdentifier, setModerationIdentifier] = useState("");
+  const [privateKey, setPrivateKey] = useState(
+    Wallet.createRandom().privateKey
+  );
 
   const submit = () => {
-    if (!identifier || !moderationIdentifier) {
+    if (!identifier || !privateKey || !isPrivateKey(privateKey)) {
       return;
     }
 
-    onSubmit(identifier, moderationIdentifier);
+    onSubmit(identifier, privateKey);
   };
   return (
     <Modal
@@ -55,15 +59,15 @@ export default function AssignFeedModal({
           Moderation Feed Identifier
         </Form.Label>
         <Form.Control
-          id="comment-system-assign-moderation-feed"
-          aria-describedby="comment-system-assign-moderation-feed-help"
-          value={moderationIdentifier}
+          id="comment-system-assign-private-key"
+          aria-describedby="comment-system-assign-private-key-help"
+          value={privateKey}
           required
-          onChange={(event) => setModerationIdentifier(event.target.value)}
+          onChange={(event) => setPrivateKey(event.target.value)}
         />
-        <Form.Text id="comment-system-assign-moderation-feed-help" muted>
-          Set identifier of your moderation feed. You will use this ID in your
-          blog to filter comments.
+        <Form.Text id="comment-system-assign-private-key-help" muted>
+          Set private key of your moderation feed. You will use this private key
+          to approve comments.
         </Form.Text>
       </Modal.Body>
       <Modal.Footer>

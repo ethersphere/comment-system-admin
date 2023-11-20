@@ -28,8 +28,8 @@ export default function SwarmCommentAdmin(
     removeFeed(feedHash);
   };
 
-  const onAssign = (identifier: string, moderationIdentifier: string) => {
-    updateFeed({ ...assigningFeed, identifier, moderationIdentifier } as Feed);
+  const onAssign = (identifier: string, privateKey: string) => {
+    updateFeed({ ...assigningFeed, identifier, privateKey } as Feed);
     setAssigningFeed(null);
   };
 
