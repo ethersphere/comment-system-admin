@@ -7,6 +7,12 @@
     margin-bottom: 20px;
   }
 
+  button {
+    width: fit-content;
+    margin: auto;
+    margin-bottom: 10px;
+  }
+
   .comment {
     display: flex;
     flex-direction: column;

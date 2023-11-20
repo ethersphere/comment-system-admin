@@ -21,6 +21,7 @@ export default function FeedComments(props: FeedCommentsProps) {
   const [loading, setLoading] = useState(true);
   const [allComments, setAllComments] = useState<Comment[] | null>(null);
   const [approvedComments, setApprovedComments] = useState<Comment[]>([]);
+  const [showPrivateKey, setShowPrivateKey] = useState(false);
 
   const feedAddress = useMemo(
     () => new Wallet(feed.privateKey as string).address,
@@ -106,6 +107,14 @@ export default function FeedComments(props: FeedCommentsProps) {
       <div className={styles["identifier"]}>Identifier: {feed.identifier}</div>
       <div className={styles["identifier"]}>Feed ID: {feed.id}</div>
       <div className={styles["identifier"]}>Feed Address: {feedAddress}</div>
+      <Button onClick={() => setShowPrivateKey(!showPrivateKey)} size="sm">
+        Show feed private key
+      </Button>
+      {showPrivateKey && (
+        <div className={styles["identifier"]}>
+          Feed Private Key: {feed.privateKey}
+        </div>
+      )}
       {allComments ? (
         allComments.length === 0 ? (
           <div>There are no comments!</div>
