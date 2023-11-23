@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Comment,
+  CommentNode,
   readComments,
+  readCommentsAsTree,
   writeComment,
 } from "@ethersphere/comment-system";
+import { Wallet } from "ethers";
 import { Feed } from "../../../model/feed.model";
 import { Button, ListGroup, Spinner } from "react-bootstrap";
 import styles from "./feed-comments.module.scss";
-import { Wallet } from "ethers";
+import CommentWithReplies from "./comment-with-replies/comment-with-replies";
 
 export interface FeedCommentsProps {
   feed: Feed;
@@ -19,41 +22,21 @@ export interface FeedCommentsProps {
 export default function FeedComments(props: FeedCommentsProps) {
   const { feed } = props;
   const [loading, setLoading] = useState(true);
-  const [allComments, setAllComments] = useState<Comment[] | null>(null);
-  const [approvedComments, setApprovedComments] = useState<Comment[]>([]);
+  const [allComments, setAllComments] = useState<CommentNode[] | null>(null);
   const [showPrivateKey, setShowPrivateKey] = useState(false);
+  const [approvedIds, setApprovedIds] = useState<Record<string, boolean>>({});
 
   const feedAddress = useMemo(
     () => new Wallet(feed.privateKey as string).address,
     [feed]
   );
 
-  const approvedIndices = useMemo(() => {
-    if (!allComments || !approvedComments) {
-      return {};
-    }
-
-    return allComments?.reduce<Record<number, boolean>>(
-      (map, comment, index) => {
-        if (
-          approvedComments?.some(
-            ({ timestamp }) => timestamp === comment.timestamp
-          )
-        ) {
-          map[index] = true;
-        }
-        return map;
-      },
-      {}
-    );
-  }, [allComments, approvedComments]);
-
   const loadComments = async () => {
     try {
       setLoading(true);
 
       const [allComments, approvedComments] = await Promise.all([
-        readComments({
+        readCommentsAsTree({
           ...props,
           identifier: feed.identifier,
         }),
@@ -65,7 +48,13 @@ export default function FeedComments(props: FeedCommentsProps) {
       ]);
 
       setAllComments(allComments);
-      setApprovedComments(approvedComments);
+      setApprovedIds(
+        approvedComments?.reduce<Record<string, boolean>>((map, comment) => {
+          map[comment.id] = true;
+
+          return map;
+        }, {})
+      );
     } catch (error) {
       console.error(error);
     } finally {
@@ -73,16 +62,32 @@ export default function FeedComments(props: FeedCommentsProps) {
     }
   };
 
-  const approveComment = async (comment: Comment) => {
+  const approveComment = async (comments: Comment[]) => {
     try {
       setLoading(true);
 
-      await writeComment(comment, {
-        ...props,
-        identifier: feed.id,
-        privateKey: feed.privateKey,
+      await comments.reverse().reduce(async (prevRequest, comment) => {
+        await prevRequest;
+
+        if (approvedIds[comment.id]) {
+          return;
+        }
+
+        await writeComment(comment, {
+          ...props,
+          identifier: feed.id,
+          privateKey: feed.privateKey,
+        });
+      }, Promise.resolve());
+
+      setApprovedIds({
+        ...approvedIds,
+        ...comments.reduce((map, { id }) => {
+          map[id] = true;
+
+          return map;
+        }, {} as Record<string, boolean>),
       });
-      setApprovedComments([...approvedComments, comment]);
     } catch (error) {
       console.error(error);
     } finally {
@@ -120,28 +125,14 @@ export default function FeedComments(props: FeedCommentsProps) {
           <div>There are no comments!</div>
         ) : (
           <ListGroup>
-            {allComments.map((comment, index) => (
-              <ListGroup.Item
-                key={index}
-                className={`${styles["comment"]} ${
-                  approvedIndices[index] ? styles["approved"] : ""
-                }`}
-              >
-                <p>{comment.data}</p>
-                <span>
-                  {comment.user},{" "}
-                  {new Date(comment.timestamp).toLocaleDateString()}
-                </span>
-                {!approvedIndices[index] && (
-                  <Button
-                    variant="outline-success"
-                    size="sm"
-                    disabled={loading}
-                    onClick={() => approveComment(comment)}
-                  >
-                    Approve
-                  </Button>
-                )}
+            {allComments.map((node) => (
+              <ListGroup.Item key={node.comment.id}>
+                <CommentWithReplies
+                  commentNode={node}
+                  loading={loading}
+                  isApproved={(id) => approvedIds[id]}
+                  onApprove={approveComment}
+                />
               </ListGroup.Item>
             ))}
           </ListGroup>

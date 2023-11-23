@@ -1,0 +1,41 @@
+.comment-node {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+
+  &.approved {
+    p {
+      color: #3a3;
+    }
+  }
+
+  &.not-approved {
+    p {
+      color: #333;
+    }
+  }
+
+  .comment {
+    display: flex;
+  }
+
+  p {
+    color: #333;
+  }
+
+  span {
+    font-size: 1rem;
+    font-style: italic;
+  }
+
+  button {
+    width: fit-content;
+    height: fit-content;
+    margin: 5px auto;
+  }
+
+  .replies {
+    padding-left: 30px;
+    margin-top: 10px;
+  }
+}

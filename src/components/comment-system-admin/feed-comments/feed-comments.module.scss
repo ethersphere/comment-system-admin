@@ -12,29 +12,4 @@
     margin: auto;
     margin-bottom: 10px;
   }
-
-  .comment {
-    display: flex;
-    flex-direction: column;
-
-    &.approved {
-      p {
-        color: #3a3;
-      }
-    }
-
-    p {
-      color: #333;
-    }
-
-    span {
-      font-size: 1rem;
-      font-style: italic;
-    }
-
-    button {
-      width: fit-content;
-      margin: 5px auto;
-    }
-  }
 }
